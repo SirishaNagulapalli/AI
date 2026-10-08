@@ -1,16 +1,35 @@
-# This is a sample Python script.
+import streamlit as st
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+st.title("Real Estate Research Tool")
+st.write("Streamlit UI is loading...")
 
+from rag import process_urls, generate_answer
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+url1 = st.sidebar.text_input("URL 1")
+url2 = st.sidebar.text_input("URL 2")
+url3 = st.sidebar.text_input("URL 3")
 
+placeholder = st.empty()
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+process_url_button = st.sidebar.button("Process URLs")
+if process_url_button:
+    urls = [url for url in (url1, url2, url3) if url!='']
+    if len(urls) == 0:
+        placeholder.text("You must provide at least one valid url")
+    else:
+        for status in process_urls(urls):
+            placeholder.text(status)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+query = placeholder.text_input("Question")
+if query:
+    try:
+        answer, sources = generate_answer(query)
+        st.header("Answer:")
+        st.write(answer)
+
+        if sources:
+            st.subheader("Sources:")
+            for source in sources.split("\n"):
+                st.write(source)
+    except RuntimeError as e:
+        placeholder.text("You must process urls first")
